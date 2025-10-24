@@ -68,7 +68,7 @@ if __name__ == "__main__":
     # List of saved audios
     list_saved_audios = list_audios()
 
-    print(f"No of audios in db: {len(list_saved_audios)}")
+    print(f"No of audios: {len(list_saved_audios)}")
     
     if list_saved_audios is not None:
         print(list_saved_audios)
@@ -89,7 +89,6 @@ if __name__ == "__main__":
 
     # Delete audio
     data1 = {
-        "id": 2, # id used to remove in db
         "Name": "mi_prueba" # name used to remove file
     }
 

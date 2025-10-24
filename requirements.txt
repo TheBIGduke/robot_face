@@ -1,5 +1,3 @@
-dnspython
-bson
 fastapi
 uvicorn
 gunicorn[standard]
@@ -9,7 +7,6 @@ google-api-python-client
 google-auth
 google-auth-httplib2
 google-auth-oauthlib
-google-cloud-speech
 google-cloud-texttospeech
 googleapis-common-protos
 websockets==15.0.1   #pip install --upgrade websockets
