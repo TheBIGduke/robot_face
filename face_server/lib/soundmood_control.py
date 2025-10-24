@@ -1,8 +1,9 @@
-import lib.db as db
 import json
 import asyncio
 import websockets
 import os
+import subprocess
+import re
 
 # A list of all available moods from your server files.
 AVAILABLE_MOODS = [
@@ -49,20 +50,90 @@ def get_audios():
 			audio_files.append({"Name": name, "Text": "N/A (Local File)"})
 	return audio_files
 
-# The rest of the functions (volume, get_moods, set_mood, etc.) remain unchanged.
+# ----- Volume Management (SQL/DB Logic Removed) -----
+
 def volume(val):
+    """
+    Sets the absolute volume (e.g., '80') or relative volume (e.g., '+5', '-10')
+    by passing the string directly to the amixer OS command.
+    """
+    # The string 'val' must contain the percentage or the relative sign (+/-).
     os.system("amixer -D pulse sset Master " + val + "%")
-    db.update_volume({"Value":val})
     return {"Status": "Ok", "Volume":val}
 
-def volumeAdd(val):
-    return db.add_volume(val)
+def volumeAdd(data):
+    """
+    Handles volume addition/setting via a POST body (e.g., {"Value": "+5"}).
+    It delegates the actual setting to the primary volume function.
+    """
+    try:
+        # Assumes input is a dictionary like {"Value": "80"} or {"Value": "+5"}
+        volume_value = str(data["Value"])
+        return volume(volume_value)
+    except KeyError:
+        return {"Status": False, "Description": "Missing 'Value' key in payload."}
+    except Exception as e:
+        return {"Status": False, "Description": f"Error setting volume: {e}"}
 
 def get_volume():
-    return db.get_volume()
+    """
+    Retrieves the actual system volume level using the amixer command.
+    """
+    try:
+        # Run amixer command and capture output
+        result = subprocess.run(
+            ['amixer', '-D', 'pulse', 'get', 'Master'],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        output = result.stdout
 
-def update_volume(val):
-    return db.update_volume(val)
+        # Use regex to find the volume percentage value, e.g., [90%]
+        match = re.search(r'\[(\d+)%\]', output)
+        
+        if match:
+            # Extract the volume value (e.g., '90')
+            current_volume = match.group(1)
+            
+            # Format the actual volume into the required JSON string
+            data = {
+                "Status": True,
+                "Value": int(current_volume),
+                "Description": "Actual system volume retrieved"
+            }
+            return json.dumps(data)
+        else:
+            # Handle case where volume percentage couldn't be parsed
+            error_data = {
+                "Status": False,
+                "Value": 0,
+                "Description": "Could not parse volume from amixer output"
+            }
+            return json.dumps(error_data)
+
+    except (subprocess.CalledProcessError, FileNotFoundError, Exception) as e:
+        # Handle command failure or command not found
+        error_data = {
+            "Status": False,
+            "Value": 0,
+            "Description": f"Could not retrieve system volume: {e}"
+        }
+        return json.dumps(error_data)
+
+def update_volume(data):
+    """
+    Handles volume updating/setting via a PUT body.
+    It delegates the actual setting to the primary volume function.
+    """
+    try:
+        # Assumes input is a dictionary like {"Value": "80"} or {"Value": "-10"}
+        volume_value = str(data["Value"])
+        return volume(volume_value)
+    except KeyError:
+        return {"Status": False, "Description": "Missing 'Value' key in payload."}
+    except Exception as e:
+        return {"Status": False, "Description": f"Error setting volume: {e}"}
 
 def pausa():
 	import os
