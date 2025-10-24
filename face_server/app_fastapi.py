@@ -4,8 +4,9 @@ from fastapi import FastAPI, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
-import lib.verbos as verbos
+import lib.soundmood_control as smc
 import lib.t2s as t2s
+import uvicorn
 
 # Configuration
 static_dir = os.path.abspath('lib/www/static')
@@ -38,15 +39,15 @@ router = APIRouter(prefix=vAPI)
 # CRUD Audios
 @router.post('/audio')
 async def post_audio(data: dict = Body(..., description="JSON payload for audio creation/update.")):
-    return verbos.post_audio(data)
+    return smc.post_audio(data)
 
 @router.delete('/audio')
 async def delete_audio(data: dict = Body(..., description="JSON payload for audio deletion.")):
-    return verbos.delete_audio(data)
+    return smc.delete_audio(data)
 
 @router.get('/audio')
 def get_audios():
-    return verbos.get_audios()
+    return smc.get_audios()
 
 
 # Playing functions
@@ -63,19 +64,19 @@ def stop():
 
 @router.get("/audio/volume/{token}")
 def volume(token: str):
-    return verbos.volume(token)
+    return smc.volume(token)
 
 @router.post("/audio/volume/add")
 async def volume_add(data: dict = Body(...)):
-    return verbos.volumeAdd(data)
+    return smc.volumeAdd(data)
 
 @router.get("/audio/volume")
 def get_volume():
-    return verbos.get_volume()
+    return smc.get_volume()
 
 @router.put("/audio/volume")
 async def update_volume(data: dict = Body(...)):
-    return verbos.update_volume(data)
+    return smc.update_volume(data)
 
 @router.get("/audio/pausa")
 def pausa():
@@ -85,11 +86,11 @@ def pausa():
 # Moods functions
 @router.get('/moods')
 def get_moods():
-    return verbos.get_moods()
+    return smc.get_moods()
 
 @router.post("/moods/{mood}")
 def set_mood(mood: str):
-    return verbos.set_mood(mood)
+    return smc.set_mood(mood)
 
 
 # Add the router's routes to the main application
@@ -99,7 +100,6 @@ app.include_router(router)
 # --- Server Execution Blocks ---
 # For local development with Uvicorn (FastAPI's standard server)
 if __name__ == '__main__':
-    import uvicorn
     # The 'reload=True' flag enables hot-reloading for development
     uvicorn.run("app_fastapi:app", host='0.0.0.0', port=9020, reload=True)
 
