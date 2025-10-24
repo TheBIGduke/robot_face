@@ -3,6 +3,7 @@ import json
 import asyncio
 import websockets
 import json
+import os
 
 # A list of all available moods from your server files.
 AVAILABLE_MOODS = [
@@ -10,27 +11,40 @@ AVAILABLE_MOODS = [
     'doubtful', 'wink', 'scared', 'disappointed', 'innocent', 'worried'
 ]
 
-#CRUD Audios
+# ----- Audio Management -----
+# (Creation, Deletion, Playback)
 def post_audio(data):
 	import lib.t2s as t2s
-	response = t2s.crearAudio(data)
-	if response and (data["Nombre"] != "@Test@"):
-		return db.post_audio(data)
-	else:
+	response = t2s.createAudio(data)
+	if (data["Name"] != "@Test@"):
 		return {"Status": "Test"}
+	if response:
+		return {"Status": True, "Description": "Audio file created/overwritten."}
+	else:
+		return {"Status": False, "Description": "Failed to create audio file."}
 
 def delete_audio(data):
-	response1 = db.delete_audio({"id" : data["id"]})
-	if response1["Status"]:
 		import lib.t2s as t2s
-		return t2s.borrarAudio(data["Nombre"])
-	return response1
+		return t2s.eraseAudio(data["Name"])
 
 def get_audios():
-	return db.get_audios()
+	AUDIO_DIR = "lib/www/static/audios/"
+
+	if not os.path.exists(AUDIO_DIR):
+		try:
+			os.makedirs(AUDIO_DIR)
+		except OSError:
+			return []
+		
+	audio_files = []
+	for filename in os.listdir(AUDIO_DIR):
+		if filename.endswith(".mp3"):
+			name = filename[:-4]
+			audio_files.append({"Nombre": name, "Texto": "N/A (Local File)"})
+	return audio_files
 
 def volume(val):
-    import os
+
     os.system("amixer -D pulse sset Master " + val + "%")
     db.update_volume({"Value":val})
     return {"Status": "Ok", "Volume":val}
@@ -50,7 +64,7 @@ def pausa():
 	return {"Status": "Ok", "mpg321": "Kill" }
 
 
-# Moods
+# ----- Moods -----
 def get_moods():
 	return AVAILABLE_MOODS
 

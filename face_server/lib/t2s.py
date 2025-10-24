@@ -1,7 +1,7 @@
 import os
 from time import time
 
-def crearAudio(data):
+def createAudio(data):
     from google.cloud import texttospeech
 
     os.environ['GOOGLE_APPLICATION_CREDENTIALS']='lib/data/key.json'
@@ -38,15 +38,15 @@ def crearAudio(data):
     )
 
     # The response's audio_content is binary.
-    with open("lib/www/static/audios/" + data["Nombre"] + ".mp3", "wb") as out:
+    with open("lib/www/static/audios/" + data["Name"] + ".mp3", "wb") as out:
         # Write the response to the output file.
         out.write(response.audio_content)
 
     return True
 
-def borrarAudio(Nombre):
+def eraseAudio(Name):
     try:
-        os.remove('lib/www/static/audios/' + Nombre + ".mp3")
+        os.remove('lib/www/static/audios/' + Name + ".mp3")
     except FileNotFoundError as e:
         print(e)
     return {"Status" : "Deleted"}
