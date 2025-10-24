@@ -28,7 +28,7 @@ def delete_audio(data):
 		return t2s.eraseAudio(data["Name"])
 
 def get_audios():
-	AUDIO_DIR = "lib/www/static/audios/"
+	AUDIO_DIR = "lib/audios/"
 
 	if not os.path.exists(AUDIO_DIR):
 		try:
