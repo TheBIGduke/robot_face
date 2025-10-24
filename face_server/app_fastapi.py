@@ -1,16 +1,24 @@
 #!/usr/bin/python3
 
+import os
 from fastapi import FastAPI, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-import os
 import lib.soundmood_control as smc
 import lib.t2s as t2s
 import uvicorn
 
-# Configuration
+# --- Configuration ---
 static_dir = os.path.abspath('lib/www/static')
 vAPI = "/v1" # Used as the APIRouter prefix
+
+# --- Static Directory Setup ---
+try:
+    os.makedirs(static_dir, exist_ok=True)
+    print(f"Ensured directory exists: {static_dir}")
+except OSError as e:
+    print(f"Error creating directory {static_dir}: {e}")
+    raise
 
 # --- FastAPI Initialization ---
 app = FastAPI(
