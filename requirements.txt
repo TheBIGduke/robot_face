@@ -10,5 +10,5 @@ google-auth-oauthlib
 google-cloud-texttospeech
 googleapis-common-protos
 websockets==15.0.1   #pip install --upgrade websockets
-soundcard
-numpy
+soundcard==0.4.5
+numpy==1.21.5

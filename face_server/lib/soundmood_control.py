@@ -4,6 +4,7 @@ import websockets
 import os
 import subprocess
 import re
+import lib.t2s as t2s
 
 # A list of all available moods from your server files.
 AVAILABLE_MOODS = [
@@ -14,7 +15,7 @@ AVAILABLE_MOODS = [
 # ----- Audio Management -----
 # (Creation, Deletion, Playback)
 def post_audio(data):
-	import lib.t2s as t2s
+
 	# 1. Calls file creation function
 	response = t2s.createAudio(data)
 	
@@ -29,7 +30,6 @@ def post_audio(data):
 		return {"Status": False, "Description": "Failed to create audio file."}
 
 def delete_audio(data):
-		import lib.t2s as t2s
 		# Use the correct key "Name" to pass the audio name to the erase function
 		return t2s.eraseAudio(data["Name"])
 
@@ -135,8 +135,7 @@ def update_volume(data):
     except Exception as e:
         return {"Status": False, "Description": f"Error setting volume: {e}"}
 
-def pausa():
-	import os
+def pause():
 	os.system("pkill mpg321")
 	return {"Status": "Ok", "mpg321": "Kill" }
 

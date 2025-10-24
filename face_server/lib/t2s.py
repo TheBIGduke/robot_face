@@ -1,8 +1,10 @@
 import os
 from time import time
+from websockets.sync.client import connect
+from google.cloud import texttospeech
 
 def createAudio(data):
-    from google.cloud import texttospeech
+
 
     os.environ['GOOGLE_APPLICATION_CREDENTIALS']='lib/data/key.json'
     # Instantiates a client
@@ -54,8 +56,6 @@ def eraseAudio(Name):
     return {"Status" : "Deleted"}
 
 def playAudio(name):
-    from websockets.sync.client import connect
-
     aux = str(time())
 
     with connect("ws://localhost:8760") as websocket:
@@ -63,9 +63,7 @@ def playAudio(name):
         websocket.send("http://localhost:9020/static/" + name + ".mp3?"+aux) # URL path adjusted to reflect new mount point
         websocket.close()
 
-def pausa():
-    from websockets.sync.client import connect
-
+def pause():
     with connect("ws://localhost:8760") as websocket:
         websocket.send("Audios")
         websocket.send("stop")

@@ -63,9 +63,9 @@ def get_audios():
 
 # Playing functions
 # Path parameters are defined using standard Python type hints.
-@router.get('/play/{texto}')
-def play(texto: str):
-    t2s.playAudio(texto)
+@router.get('/play/{text}')
+def play(text: str):
+    t2s.playAudio(text)
     return {"Status" : True}
 
 @router.get('/stop')
@@ -89,9 +89,9 @@ def get_volume():
 async def update_volume(data: dict = Body(...)):
     return smc.update_volume(data)
 
-@router.get("/audio/pausa")
-def pausa():
-    return t2s.pausa()
+@router.get("/audio/pause")
+def pause():
+    return t2s.pause()
 
 
 # Moods functions
