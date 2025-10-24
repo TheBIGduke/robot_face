@@ -34,7 +34,7 @@ def delete_audio(data):
 
 def get_audios():
 	base_dir = os.path.dirname(os.path.abspath(__file__))
-	AUDIO_DIR = os.path.join(base_dir, "lib/audios/")
+	AUDIO_DIR = os.path.join(base_dir, "audios")
 
 	if not os.path.exists(AUDIO_DIR):
 		try:
