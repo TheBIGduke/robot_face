@@ -9,11 +9,13 @@ import lib.t2s as t2s
 import uvicorn
 
 # --- Configuration ---
-static_dir = os.path.abspath('lib/www/static')
+# FIXED: Point static directory to the simplified 'lib/audios' path
+static_dir = os.path.abspath('lib/audios') 
 vAPI = "/v1" # Used as the APIRouter prefix
 
 # --- Static Directory Setup ---
 try:
+    # Ensure the simplified directory exists before mounting
     os.makedirs(static_dir, exist_ok=True)
     print(f"Ensured directory exists: {static_dir}")
 except OSError as e:
@@ -38,6 +40,7 @@ app.add_middleware(
 
 # --- Static Files ---
 # Mounts the static directory to be served under the '/static' path.
+# Now, /static maps directly to the contents of the 'lib/audios' folder.
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # --- APIRouter for /v1 prefix ---
@@ -119,5 +122,3 @@ if __name__ == '__main__':
 # -w 4 Sets the number of worker processes (workers).
 # -k uvicorn.workers.UvicornWorker Tells Gunicorn to use the high-performance async worker.
 # 'app_fastapi:app' references the file name and the FastAPI application object.
-
-

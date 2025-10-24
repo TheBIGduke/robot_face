@@ -2,7 +2,6 @@ import lib.db as db
 import json
 import asyncio
 import websockets
-import json
 import os
 
 # A list of all available moods from your server files.
@@ -15,9 +14,14 @@ AVAILABLE_MOODS = [
 # (Creation, Deletion, Playback)
 def post_audio(data):
 	import lib.t2s as t2s
+	# 1. Calls file creation function
 	response = t2s.createAudio(data)
-	if (data["Name"] != "@Test@"):
+	
+	# 2. Check for the test name, using the correct key "Name"
+	if data.get("Name") == "@Test@":
 		return {"Status": "Test"}
+	
+	# 3. Return status for non-test audio based on file creation success
 	if response:
 		return {"Status": True, "Description": "Audio file created/overwritten."}
 	else:
@@ -25,10 +29,12 @@ def post_audio(data):
 
 def delete_audio(data):
 		import lib.t2s as t2s
+		# Use the correct key "Name" to pass the audio name to the erase function
 		return t2s.eraseAudio(data["Name"])
 
 def get_audios():
-	AUDIO_DIR = "lib/audios/"
+	base_dir = os.path.dirname(os.path.abspath(__file__))
+	AUDIO_DIR = os.path.join(base_dir, "lib/audios/")
 
 	if not os.path.exists(AUDIO_DIR):
 		try:
@@ -40,11 +46,11 @@ def get_audios():
 	for filename in os.listdir(AUDIO_DIR):
 		if filename.endswith(".mp3"):
 			name = filename[:-4]
-			audio_files.append({"Nombre": name, "Texto": "N/A (Local File)"})
+			audio_files.append({"Name": name, "Text": "N/A (Local File)"})
 	return audio_files
 
+# The rest of the functions (volume, get_moods, set_mood, etc.) remain unchanged.
 def volume(val):
-
     os.system("amixer -D pulse sset Master " + val + "%")
     db.update_volume({"Value":val})
     return {"Status": "Ok", "Volume":val}

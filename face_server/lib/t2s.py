@@ -19,7 +19,7 @@ def createAudio(data):
     #__________________________________________________________________________
 
     # Set the text input to be synthesized
-    synthesis_input = texttospeech.SynthesisInput(text=data["Texto"])
+    synthesis_input = texttospeech.SynthesisInput(text=data["Text"])
 
     # Build the voice request
     voice = texttospeech.VoiceSelectionParams(
@@ -38,7 +38,8 @@ def createAudio(data):
     )
 
     # The response's audio_content is binary.
-    with open("lib/www/static/audios/" + data["Name"] + ".mp3", "wb") as out:
+    # FIXED: Save to the simplified path: "lib/audios/"
+    with open("lib/audios/" + data["Name"] + ".mp3", "wb") as out: 
         # Write the response to the output file.
         out.write(response.audio_content)
 
@@ -46,7 +47,8 @@ def createAudio(data):
 
 def eraseAudio(Name):
     try:
-        os.remove('lib/www/static/audios/' + Name + ".mp3")
+        # FIXED: Delete from the simplified path: "lib/audios/"
+        os.remove('lib/audios/' + Name + ".mp3")
     except FileNotFoundError as e:
         print(e)
     return {"Status" : "Deleted"}
@@ -58,7 +60,7 @@ def playAudio(name):
 
     with connect("ws://localhost:8760") as websocket:
         websocket.send("Audios")
-        websocket.send("http://localhost:9020/static/audios/" + name + ".mp3?"+aux)
+        websocket.send("http://localhost:9020/static/" + name + ".mp3?"+aux) # URL path adjusted to reflect new mount point
         websocket.close()
 
 def pausa():

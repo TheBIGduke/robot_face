@@ -21,9 +21,9 @@ def list_audios():
 
         if isinstance(response_body, list):
             # Use a list comprehension to extract the 'name' from each dictionary in the 'data' list
-            message = [item.get('Nombre') for item in response_body if isinstance(item, dict) and 'Nombre' in item]
+            message = [item.get('Name') for item in response_body if isinstance(item, dict) and 'Name' in item]
         else:
-            print("Error: 'Nombre' key not found or not a list in the response.")
+            print("Error: 'Name' key not found or not a list in the response.")
             message = []
 
     except requests.exceptions.Timeout:
@@ -76,21 +76,21 @@ if __name__ == "__main__":
 
     # Create audio
     data = { # dummy audio dict
-        "Nombre": "@Test@",
-        "Texto": "frase sin que se guarde"
+        "Name": "@Test@",
+        "Text": "esto es una prueba de generación de audio"
     }
 
     message = create_audio(data)
     print("\nCreation message:", message)
 
     ## IMPORTANT: To generate an audio file omitting its register in database, 
-    # use '@Test@' as 'Nombre'
+    # use '@Test@' as 'Name'
 
 
     # Delete audio
     data1 = {
         "id": 2, # id used to remove in db
-        "Nombre": "mi_prueba" # name used to remove file
+        "Name": "mi_prueba" # name used to remove file
     }
 
     # message1 = delete_audio(data1)
