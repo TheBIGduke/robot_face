@@ -153,6 +153,7 @@ def terminal_input_loop(loop):
             # Use sys.exit to shut down the program gracefully
             return 
 
+        # ... Audio on ...
         elif command == 'audio on':
             if not is_audio_enabled:
                 is_audio_enabled = True
@@ -160,6 +161,7 @@ def terminal_input_loop(loop):
             else:
                 print("--> Audio streaming is already ON.")
 
+        # ... Audio off ...
         elif command == 'audio off':
             if is_audio_enabled:
                 is_audio_enabled = False
