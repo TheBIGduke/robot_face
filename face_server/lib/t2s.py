@@ -43,7 +43,7 @@ def createAudio(data):
         input=synthesis_input, voice=voice, audio_config=audio_config
     )
 
-    # Save to the pahth: "lib/audios/"
+    # Save to the static directory
     with open("lib/audios/" + data["Name"] + ".mp3", "wb") as out: 
         # Write the response to the output file.
         out.write(response.audio_content)
@@ -53,7 +53,7 @@ def createAudio(data):
 # ----- Erase Audio File -----
 def eraseAudio(Name):
     try:
-        # Delete from the path: "lib/audios/"
+        # Delete from the static directory
         os.remove('lib/audios/' + Name + ".mp3")
     except FileNotFoundError as e:
         print(e)
