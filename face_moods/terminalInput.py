@@ -1,3 +1,10 @@
+
+"""
+@description: A WebSocket server that streams system audio FFT data (bass levels)
+to connected clients and allows for real-time control (mood changes, audio on/off)
+via a background terminal input thread.
+"""
+
 import asyncio
 import json
 import websockets
@@ -10,19 +17,19 @@ import sys
 
 # --- THIS IS A CODE THAT RUNS THE WEBSOCKET SERVER AND ALLOWS TO CHANGE STATES BY USING THE TERMINAL INPUT ---
 
+# ----- CONFIGURATION & GLOBALS -----
 # Central list of all valid moods, synchronized with the HTML file
 AVAILABLE_MOODS = (
     'neutral', 'happy', 'sad', 'angry', 'surprised', 'love', 'dizzy',
     'doubtful', 'wink', 'scared', 'disappointed', 'innocent', 'worried'
 )
 
-# --- Global state trackers ---
+# *** Global state trackers ***
 ACTIVE_CONNECTIONS = set()
 initial_connection_made = False
-# --- MODIFICATION: Changed initial audio state to off ---
 is_audio_enabled = False
 
-# --- Audio settings ---
+# *** Audio settings ***
 sampleRate = 44100
 chunkSize = 1024
 bassRangeStart, bassRangeEnd = 60, 250
@@ -30,11 +37,10 @@ midRangeStart, midRangeEnd = 251, 2000
 highRangeStart, highRangeEnd = 2001, 6000
 
 
+# ----- WEBSOCKET HANDLERS & HELPERS -----
+
+# *** Handle New Client Connection ***
 async def audioStreamHandler(websocket):
-    """
-    Handles a new client connection. Sets the global state and starts the
-    audio processing loop, ensuring silent clean-up on disconnection.
-    """
     global initial_connection_made
     if not initial_connection_made:
         initial_connection_made = True
@@ -46,16 +52,11 @@ async def audioStreamHandler(websocket):
         if websocket in ACTIVE_CONNECTIONS:
             ACTIVE_CONNECTIONS.remove(websocket)
 
-
+# *** Process and Stream Audio FFT ***
 async def process_audio(websocket):
-    """
-    Captures system audio, performs FFT analysis, and sends the frequency
-    data to a connected client in a continuous loop.
-    """
     global is_audio_enabled
     bass_history = deque(maxlen=5)
     try:
-        # NOTE: This uses the loopback device name. May fail if the system speaker name changes.
         with sc.get_microphone(
             id=str(sc.default_speaker().name),
             include_loopback=True
@@ -68,13 +69,13 @@ async def process_audio(websocket):
                 data = mic.record(numframes=chunkSize)
                 if data.size == 0: continue
 
-                # FFT analysis
+                # ... FFT analysis ...
                 fftData = np.fft.rfft(data[:, 0])
-                fftFreq = np.fft.rfftfreq(len(data[:, 0]), 1.0 / sampleRate)
+                fftFreq = np.fft.rffreq(len(data[:, 0]), 1.0 / sampleRate)
                 bassIndices = np.where((fftFreq >= bassRangeStart) & (fftFreq <= bassRangeEnd))
                 bassEnergy = np.mean(np.abs(fftData[bassIndices])) if bassIndices[0].size > 0 else 0
                 
-                # Normalization and smoothing
+                # ... Normalization and smoothing ...
                 normalizedBass = min(bassEnergy / 30.0, 1.0)
                 bass_history.append(normalizedBass)
                 smoothed_bass = np.mean(bass_history)
@@ -89,37 +90,37 @@ async def process_audio(websocket):
         print(f"Audio processing error: {e}")
         pass # Allow the handler to clean up
 
-
+# *** Send Mood Command ***
 async def sendMood(websocket, mood_name):
-    """Formats and sends a mood command to a client."""
     try:
         payload = {"type": "mood", "mood": mood_name}
         await websocket.send(json.dumps(payload))
     except websockets.exceptions.ConnectionClosed:
         pass
 
+# *** Send Audio Off Signal ***
 async def send_audio_off_signal(websocket):
-    """Sends a zero-value audio packet to reset the client's mouth animation."""
     try:
         payload = {"type": "audio", "bass": 0}
         await websocket.send(json.dumps(payload))
     except websockets.exceptions.ConnectionClosed:
         pass
 
+
+# ----- TERMINAL INPUT THREAD -----
+
+# *** Print Help Menu ***
 def print_help_menu(options_text):
-    """Prints the available commands."""
     print(f"\n--- Available Commands ---\nMoods: {options_text}\nActions: audio on, audio off\nType 'exit' to quit.")
 
+# *** Handle Terminal Input (Background Thread) ***
 def terminal_input_loop(loop):
-    """
-    Runs in a background thread to provide a robust command-line interface.
-    """
     global is_audio_enabled
     options_text = ", ".join(AVAILABLE_MOODS)
     loader_chars = ['|', '/', '-', '\\']
 
     while True:
-        # Handle connection status display
+        # ... Handle connection status display ...
         if not ACTIVE_CONNECTIONS:
             i = 0
             message = "Connection lost. Reconnecting... " if initial_connection_made else "Waiting for client connection... "
@@ -138,7 +139,7 @@ def terminal_input_loop(loop):
             time.sleep(0.5) 
             continue
 
-        # Get command input from the user (Fix for NameError)
+        # ... Get command input from the user ...
         try:
             command = input("Enter command: ").strip().lower()
         except EOFError:
@@ -151,11 +152,9 @@ def terminal_input_loop(loop):
         if command == 'exit':
             print("\nExiting command loop.")
             # Use sys.exit to shut down the program gracefully
-            # Note: sys.exit() on a thread only exits the thread, use a flag for main loop, 
-            # but for a simple terminal tool, forcing an exit is often acceptable.
-            # In this case, we rely on the main process KeyboardInterrupt handler.
             return 
 
+        # ... Audio on ...
         elif command == 'audio on':
             if not is_audio_enabled:
                 is_audio_enabled = True
@@ -163,6 +162,7 @@ def terminal_input_loop(loop):
             else:
                 print("--> Audio streaming is already ON.")
 
+        # ... Audio off ...
         elif command == 'audio off':
             if is_audio_enabled:
                 is_audio_enabled = False
@@ -195,8 +195,10 @@ def terminal_input_loop(loop):
         command = None 
 
 
+# ----- SERVER STARTUP -----
+
+# *** Main Async Server Function ***
 async def mainAsync():
-    """Starts the WebSocket server and the background terminal input thread."""
     serverAddress = "localhost"
     serverPort = 8760
     print(f"Starting WebSocket server on ws://{serverAddress}:{serverPort}")
@@ -210,7 +212,7 @@ async def mainAsync():
         # Keep the main async loop running indefinitely
         await asyncio.Future()
 
-
+# *** Entry Point ***
 if __name__ == "__main__":
     try:
         asyncio.run(mainAsync())

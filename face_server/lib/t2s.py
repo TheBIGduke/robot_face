@@ -1,3 +1,9 @@
+
+"""
+@description: Library for handling Text-to-Speech (TTS) generation using Google Cloud
+and controlling audio playback (play/pause) by sending commands to a WebSocket server.
+"""
+
 import os
 from google.cloud import texttospeech
 import subprocess
@@ -16,9 +22,9 @@ def createAudio(data):
     
     client = texttospeech.TextToSpeechClient() # Instantiates a client
 
-    name="es-US-Wavenet-B" #Voz es-US-Wavenet-C (A, B o C), es-US-Standard-A (A,B o C)
+    # *** TTS Parameters ***
+    name="es-US-Wavenet-B"
     language_code="es-US"
-
     audio_encoding=texttospeech.AudioEncoding.MP3
     speaking_rate = 0.9
     pitch = 8
@@ -36,8 +42,7 @@ def createAudio(data):
         audio_encoding=audio_encoding, speaking_rate = speaking_rate, pitch = pitch
     )
 
-    # Perform the text-to-speech request on the text input with the selected
-    # voice parameters and audio file type
+    # Perform the request
     response = client.synthesize_speech(
         input=synthesis_input, voice=voice, audio_config=audio_config
     )
@@ -48,6 +53,7 @@ def createAudio(data):
 
     return True
 
+# ----- Erase Audio File -----
 def eraseAudio(Name):
     try:
         os.remove(audios_dir + Name + ".mp3")

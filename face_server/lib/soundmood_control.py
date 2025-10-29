@@ -1,3 +1,8 @@
+"""
+@description: Backend service that manages the phrases audio files (create, delete, list), controls system volume using amixer commands,
+and sends "mood" updates (like 'happy' or 'sad') to a WebSocket server, to sync with the face visualizer.
+"""
+
 import json
 import asyncio
 import websockets
@@ -32,9 +37,24 @@ def post_audio(data):
 	else:
 		return {"Status": False, "Description": "Failed to create audio file. key.json missing?"}
 
+    # Calls file creation function
+    response = t2s.createAudio(data)
+    
+    # Check for the test name, using the correct key "Name"
+    if data.get("Name") == "@Test@":
+        return {"Status": "Test"}
+    
+    # Return status for non-test audio based on file creation success
+    if response:
+        return {"Status": True, "Description": "Audio file created/overwritten."}
+    else:
+        return {"Status": False, "Description": "Failed to create audio file."}
+
+# *** Deletion ***
 def delete_audio(data):
 	return t2s.eraseAudio(data["Name"])
 
+# *** List Audios ***
 def get_audios():
 	base_dir = os.path.dirname(os.path.abspath(__file__))
 	AUDIO_DIR = os.path.join(base_dir, "audios")
@@ -61,6 +81,7 @@ def set_volume(val):
     os.system("amixer -D pulse sset Master " + val + "%")
     return {"Status": "Ok", "Volume": val}
 
+# *** Get Current Volume ***
 def get_volume():
     """
     Retrieves the actual system volume level using the amixer command.
@@ -100,10 +121,11 @@ def get_volume():
         return json.dumps(error_data)
 
 
-# ----- Moods -----
-def get_moods():
-	return AVAILABLE_MOODS
+# ----- MOODS -----
 
+# *** List Available Moods ***
+def get_moods():
+    return AVAILABLE_MOODS
 
 async def send_mood(command_type, mood):
 	payload = {"type": command_type, **mood}

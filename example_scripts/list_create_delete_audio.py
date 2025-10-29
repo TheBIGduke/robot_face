@@ -9,11 +9,17 @@ Audios of 'face_server' with octybot voice.
 
 import requests
 
+
+# ----- SERVER CONFIGURATION -----
 SERVER_IP = "localhost"
 SERVER_PORT = "9020"
 url_base = f"http://{SERVER_IP}:{SERVER_PORT}/v1/audio"
 
 
+# ----- AUDIO MANAGEMENT (VIA API) -----
+# (List, Create, Delete)
+
+# *** List Audios ***
 def list_audios():
     try:
         response = requests.get(url_base, json={}, params={}, timeout=2.0)
@@ -33,7 +39,7 @@ def list_audios():
 
     return message
 
-
+# *** Create Audio ***
 def create_audio(data):
     try:
         response = requests.post(url_base, json=data, timeout=2)
@@ -46,7 +52,7 @@ def create_audio(data):
 
     return message
 
-
+# *** Delete Audio ***
 def delete_audio(data):
     try:
         response = requests.delete(url_base, json=data, timeout=2)
@@ -62,10 +68,10 @@ def delete_audio(data):
     return message
 
 
-# --- Usage example ----
+# ----- USAGE EXAMPLE -----
 if __name__ == "__main__":
 
-    # List of saved audios
+    # *** List of saved audios ***
     list_saved_audios = list_audios()
 
     print(f"No of audios: {len(list_saved_audios)}")
@@ -92,4 +98,3 @@ if __name__ == "__main__":
 
     # message1 = delete_audio(data1)
     # print("\nDelete message:", message1)
-

@@ -1,5 +1,11 @@
 #!/usr/bin/python3
 
+"""
+@description: FastAPI backend server that provides API endpoints for audio management
+(CRUD, play, stop, pause, volume control) and mood settings. It also serves
+audio files from a static directory.
+"""
+
 import os
 from fastapi import FastAPI, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,7 +18,7 @@ import uvicorn
 static_dir = os.path.abspath('lib/audios') 
 vAPI = "/v1" # Used as the APIRouter prefix
 
-# --- Static Directory Setup ---
+# *** Static Directory Setup ***
 try:
     # Ensure the simplified directory exists before mounting
     os.makedirs(static_dir, exist_ok=True)
@@ -21,13 +27,13 @@ except OSError as e:
     print(f"Error creating directory {static_dir}: {e}")
     raise
 
-# --- FastAPI Initialization ---
+# *** FastAPI Initialization ***
 app = FastAPI(
     title="Robot audios server",
     description="Robot audios backend using FastAPI."
 )
 
-# --- CORS Middlewares ---
+# *** CORS Middlewares ***
 # Allows all origins, methods, and headers, matching the original Flask CORS setup.
 app.add_middleware(
     CORSMiddleware,
@@ -37,23 +43,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Static Files ---
+# *** Static Files ***
 # Mounts the static directory to be served under the '/static' path.
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-# --- APIRouter for /v1 prefix ---
+
+# ----- API ROUTER DEFINITION -----
+# APIRouter for /v1 prefix
 router = APIRouter(prefix=vAPI)
 
 
-# CRUD Audios
+# ----- AUDIO CRUD ENDPOINTS -----
+
+# *** Create/Post Audio ***
 @router.post('/audio')
 async def post_audio(data: dict = Body(..., description="JSON payload for audio creation/update.")):
     return smc.post_audio(data)
 
+# *** Delete Audio ***
 @router.delete('/audio')
 async def delete_audio(data: dict = Body(..., description="JSON payload for audio deletion.")):
     return smc.delete_audio(data)
 
+# *** Get/List Audios ***
 @router.get('/audio')
 def get_audios():
     return smc.get_audios()
@@ -68,6 +80,7 @@ def play(audio_file: str):
 def stop():
     return t2s.stop()
 
+# *** Get Current Volume ***
 @router.get("/audio/volume")
 def get_volume():
     return smc.get_volume()
@@ -77,11 +90,14 @@ async def set_volume(value):
     return smc.set_volume(value)
 
 
-# Moods functions
+# ----- MOOD CONTROL ENDPOINTS -----
+
+# *** Get Available Moods ***
 @router.get('/moods')
 def get_moods():
     return smc.get_moods()
 
+# *** Set Current Mood ***
 @router.post("/moods/{mood}")
 def set_mood(mood: str):
     return smc.set_mood(mood)
@@ -91,11 +107,14 @@ def set_mouth(state: str):
     return smc.set_mouth(state)
 
 
+# ----- REGISTER ROUTER -----
 # Add the router's routes to the main application
 app.include_router(router)
 
 
-# --- Server Execution Blocks ---
+# ----- SERVER STARTUP -----
+
+# *** Server Execution Blocks ***
 # For local development with Uvicorn (FastAPI's standard server)
 if __name__ == '__main__':
     # The 'reload=True' flag enables hot-reloading for development
