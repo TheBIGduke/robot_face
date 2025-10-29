@@ -23,7 +23,8 @@ AVAILABLE_MOODS = (
 
 # --- WebSocket State ---
 ACTIVE_CLIENTS = set()
-is_audio_enabled = False
+# Flag state variables
+is_audio_enabled = True
 
 
 # --- Audio Processing Settings ---

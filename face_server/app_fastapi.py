@@ -14,10 +14,7 @@ import lib.soundmood_control as smc
 import lib.t2s as t2s
 import uvicorn
 
-
-# ----- CONFIGURATION & APP INITIALIZATION -----
-
-# Point static directory
+# --- Configuration ---
 static_dir = os.path.abspath('lib/audios') 
 vAPI = "/v1" # Used as the APIRouter prefix
 
@@ -74,47 +71,23 @@ def get_audios():
     return smc.get_audios()
 
 
-# ----- AUDIO PLAYBACK ENDPOINTS -----
+# Playing functions
+@router.get('/play/{audio_file}')
+def play(audio_file: str):
+    return t2s.playAudio(audio_file)
 
-# *** Play Audio (by name) ***
-@router.get('/play/{text}')
-def play(text: str):
-    t2s.playAudio(text)
-    return {"Status" : True}
-
-# *** Stop Audio Playback ***
-@router.get('/stop')
+@router.get('/audio/stop')
 def stop():
-    t2s.stop()
-    return {"Status" : True}
-
-
-# ----- VOLUME CONTROL ENDPOINTS -----
-
-# *** Set Volume (by token/value) ***
-@router.get("/audio/volume/{token}")
-def volume(token: str):
-    return smc.volume(token)
-
-# *** Set Volume (Relative/Add) ***
-@router.post("/audio/volume/add")
-async def volume_add(data: dict = Body(...)):
-    return smc.volumeAdd(data)
+    return t2s.stop()
 
 # *** Get Current Volume ***
 @router.get("/audio/volume")
 def get_volume():
     return smc.get_volume()
 
-# *** Update Volume ***
-@router.put("/audio/volume")
-async def update_volume(data: dict = Body(...)):
-    return smc.update_volume(data)
-
-# *** Pause Audio Playback ***
-@router.get("/audio/pause")
-def pause():
-    return t2s.pause()
+@router.post("/audio/volume/{value}")
+async def set_volume(value):
+    return smc.set_volume(value)
 
 
 # ----- MOOD CONTROL ENDPOINTS -----
@@ -128,6 +101,10 @@ def get_moods():
 @router.post("/moods/{mood}")
 def set_mood(mood: str):
     return smc.set_mood(mood)
+
+@router.get("/moods/{state}")
+def set_mouth(state: str):
+    return smc.set_mouth(state)
 
 
 # ----- REGISTER ROUTER -----

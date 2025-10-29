@@ -1,7 +1,10 @@
 
 """
-@description: Client to manage audio files on a local server. It sends HTTP requests to list all available audios,
-create a new audio file from text, or delete an existing audio file by its name.
+@description: Simple script to list, create and delete an audio via API endpoint.
+Audios of 'face_server' with octybot voice.
+
+@requirements: 'app_fastapi.py' (server), 'face.html' (octybot face with mouth on chromium) and 
+'audioServer.py' MUST be running.
 """
 
 import requests
@@ -76,21 +79,21 @@ if __name__ == "__main__":
     if list_saved_audios is not None:
         print(list_saved_audios)
 
-    # *** Create audio ***
+
+    # Create audio
+    ## IMPORTANT: To generate an audio file for testing, use '@Test@' as 'Name'
     data = { # dummy audio dict
-        "Name": "@Test@",
+        "Name": "prueba",
         "Text": "esto es una prueba de generación de audio"
     }
 
     message = create_audio(data)
     print("\nCreation message:", message)
 
-    ## IMPORTANT: To generate an audio file omitting its register in database, 
-    # use '@Test@' as 'Name'
 
-    # *** Delete audio ***
+    # Delete audio
     data1 = {
-        "Name": "mi_prueba" # name used to remove file
+        "Name": "prueba" # name used to remove file
     }
 
     # message1 = delete_audio(data1)
