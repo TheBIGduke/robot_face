@@ -8,7 +8,7 @@ import threading
 import time
 import sys
 
-# --- THIS IS A CODE THAT RUNS THE WEBSOCKET SERVER AND ALOWS TO CHANGE STATES BY USING THE TERMINAL INPUT ---
+# --- THIS IS A CODE THAT RUNS THE WEBSOCKET SERVER AND ALLOWS TO CHANGE STATES BY USING THE TERMINAL INPUT ---
 
 # Central list of all valid moods, synchronized with the HTML file
 AVAILABLE_MOODS = (

@@ -9,7 +9,6 @@ import lib.t2s as t2s
 import uvicorn
 
 # --- Configuration ---
-# FIXED: Point static directory to the simplified 'lib/audios' path
 static_dir = os.path.abspath('lib/audios') 
 vAPI = "/v1" # Used as the APIRouter prefix
 
@@ -40,7 +39,6 @@ app.add_middleware(
 
 # --- Static Files ---
 # Mounts the static directory to be served under the '/static' path.
-# Now, /static maps directly to the contents of the 'lib/audios' folder.
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # --- APIRouter for /v1 prefix ---
@@ -62,36 +60,21 @@ def get_audios():
 
 
 # Playing functions
-# Path parameters are defined using standard Python type hints.
-@router.get('/play/{text}')
-def play(text: str):
-    t2s.playAudio(text)
-    return {"Status" : True}
+@router.get('/play/{audio_file}')
+def play(audio_file: str):
+    return t2s.playAudio(audio_file)
 
-@router.get('/stop')
+@router.get('/audio/stop')
 def stop():
-    t2s.stop()
-    return {"Status" : True}
-
-@router.get("/audio/volume/{token}")
-def volume(token: str):
-    return smc.volume(token)
-
-@router.post("/audio/volume/add")
-async def volume_add(data: dict = Body(...)):
-    return smc.volumeAdd(data)
+    return t2s.stop()
 
 @router.get("/audio/volume")
 def get_volume():
     return smc.get_volume()
 
-@router.put("/audio/volume")
-async def update_volume(data: dict = Body(...)):
-    return smc.update_volume(data)
-
-@router.get("/audio/pause")
-def pause():
-    return t2s.pause()
+@router.post("/audio/volume/{value}")
+async def set_volume(value):
+    return smc.set_volume(value)
 
 
 # Moods functions
@@ -102,6 +85,10 @@ def get_moods():
 @router.post("/moods/{mood}")
 def set_mood(mood: str):
     return smc.set_mood(mood)
+
+@router.get("/moods/{state}")
+def set_mouth(state: str):
+    return smc.set_mouth(state)
 
 
 # Add the router's routes to the main application

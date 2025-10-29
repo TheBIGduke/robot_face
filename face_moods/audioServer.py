@@ -14,7 +14,7 @@ AVAILABLE_MOODS = (
 # --- Use a set to track all active clients ---
 ACTIVE_CLIENTS = set()
 # Flag state variables
-is_audio_enabled = False
+is_audio_enabled = True
 
 
 # --- Audio settings ---

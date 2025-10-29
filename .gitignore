@@ -1,1 +1,5 @@
 key.json
+.vscode/
+__pycache__/
+*.pyc
+#find . -name "__pycache__" -type d -print0 | xargs -0 rm -rf
