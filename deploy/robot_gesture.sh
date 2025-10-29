@@ -1,11 +1,14 @@
 #!/bin/bash
 
+sleep 15
+
 # Process 3) face_server
 cd ~/robot_face/face_server
-gunicorn -w 4 -b 0.0.0.0:9020 'app_fastapi:app' &
+python3 app_fastapi.py &
+#gunicorn -w 4 -b 0.0.0.0:9020 -k uvicorn.workers.UvicornWorker 'app_fastapi:app' &
 
 # Process 1) face_moods
-sleep 10
+sleep 3
 cd ~/robot_face/face_moods
 python3 audioServer.py &
 
