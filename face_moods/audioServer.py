@@ -31,7 +31,7 @@ is_audio_enabled = True
 # *** Audio Processing Settings ***
 sampleRate = 44100
 chunkSize = 1024
-bassRangeStart, bassRangeEnd = 60, 250
+bassRangeStart, bassRangeEnd = 160, 255
 midRangeStart, midRangeEnd = 251, 2000
 highRangeStart, highRangeEnd = 2001, 6000
 
