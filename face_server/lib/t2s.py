@@ -1,3 +1,9 @@
+
+"""
+@description: Library for handling Text-to-Speech (TTS) generation using Google Cloud
+and controlling audio playback (play/stop) by sending commands to a WebSocket server.
+"""
+
 import os
 from google.cloud import texttospeech
 import subprocess
@@ -5,9 +11,12 @@ import subprocess
 audios_dir = "lib/audios/"
 subprocess_pointer = None
 
+# ----- CREATE AUDIO FILE -----
+# (Google TTS)
 def createAudio(data):
     google_key_file = 'lib/data/key.json'
 
+    # *** Verification of the key ***
     if os.path.exists(google_key_file):
         os.environ['GOOGLE_APPLICATION_CREDENTIALS']=google_key_file
     else:
@@ -16,6 +25,7 @@ def createAudio(data):
     
     client = texttospeech.TextToSpeechClient() # Instantiates a client
 
+    # *** TTS Parameters ***
     name="es-US-Wavenet-B" #Voz es-US-Wavenet-C (A, B o C), es-US-Standard-A (A,B o C)
     language_code="es-US"
 
@@ -23,7 +33,7 @@ def createAudio(data):
     speaking_rate = 0.9
     pitch = 8
 
-    # Set the text input to be synthesized
+    # *** Sintezise Speech Request ***
     synthesis_input = texttospeech.SynthesisInput(text=data["Text"])
 
     # Build the voice request
@@ -36,25 +46,26 @@ def createAudio(data):
         audio_encoding=audio_encoding, speaking_rate = speaking_rate, pitch = pitch
     )
 
-    # Perform the text-to-speech request on the text input with the selected
-    # voice parameters and audio file type
+    # Perform the text-to-speech request
     response = client.synthesize_speech(
         input=synthesis_input, voice=voice, audio_config=audio_config
     )
 
-    # The response's audio_content is binary.
+    # Save to the static directory
     with open(audios_dir + data["Name"] + ".mp3", "wb") as out: 
         out.write(response.audio_content) # Write the response to the output file.
 
     return True
 
+# ----- Erase Audio File -----
 def eraseAudio(Name):
     try:
-        os.remove(audios_dir + Name + ".mp3")
+        os.remove(audios_dir + Name + ".mp3") # Delete from the static directory
     except FileNotFoundError as e:
         print(e)
     return {"Status" : "Deleted"}
 
+# ----- Play Audio (via WebSocket) -----
 def playAudio(audio_file):
     global subprocess_pointer
     path_file = audios_dir + audio_file + ".mp3"
@@ -64,7 +75,7 @@ def playAudio(audio_file):
     subprocess_pointer = subprocess_pt
     return {"Status": "Ok", "audio": "playing"}
 
-
+# ----- Pause Audio (via WebSocket) -----
 def stop():
     global subprocess_pointer
     if subprocess_pointer is not None:

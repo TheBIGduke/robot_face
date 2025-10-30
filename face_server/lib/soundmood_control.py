@@ -1,3 +1,9 @@
+"""
+@description: Backend service that manages the phrases audio files (create, delete, list), 
+controls system volume using amixer commands, and sends "mood" updates (like 'happy' or 'sad') 
+to a WebSocket server, to sync with the face visualizer.
+"""
+
 import json
 import asyncio
 import websockets
@@ -15,8 +21,11 @@ AVAILABLE_MOODS = [
     'doubtful', 'wink', 'scared', 'disappointed', 'innocent', 'worried'
 ]
 
+
 # ----- Audio Management -----
 # (Creation, Deletion, Playback, Get/Set Volume)
+
+# *** Creation ***
 def post_audio(data):
 
 	# 1. Calls file creation function
@@ -32,19 +41,25 @@ def post_audio(data):
 	else:
 		return {"Status": False, "Description": "Failed to create audio file. key.json missing?"}
 
+# *** Deletion ***
 def delete_audio(data):
+	# Use the correct key "Name" to pass the audio name to the erase function
 	return t2s.eraseAudio(data["Name"])
 
+# *** List Audios ***
 def get_audios():
+	# Searches for the directory where they're stored
 	base_dir = os.path.dirname(os.path.abspath(__file__))
 	AUDIO_DIR = os.path.join(base_dir, "audios")
 
+    # If the directory does not exist, it's created
 	if not os.path.exists(AUDIO_DIR):
 		try:
 			os.makedirs(AUDIO_DIR)
 		except OSError:
 			return []
-		
+	
+    # Filters and lists all .mp3 files in the directory 
 	audio_files = []
 	for filename in os.listdir(AUDIO_DIR):
 		if filename.endswith(".mp3"):
@@ -53,14 +68,17 @@ def get_audios():
 	return audio_files
 
 
+# ----- VOLUME MANAGEMENT -----
+# *** Set Volume ***
 def set_volume(val):
     """
-    Sets the absolute volume (e.g., '80') by passing the string directly to the amixer OS command.
+    Sets the absolute volume in percentage by passing the string directly to the amixer OS command.
     """
     # The string 'val' must contain the percentage
     os.system("amixer -D pulse sset Master " + val + "%")
     return {"Status": "Ok", "Volume": val}
 
+# *** Get Current Volume ***
 def get_volume():
     """
     Retrieves the actual system volume level using the amixer command.
@@ -101,12 +119,14 @@ def get_volume():
 
 
 # ----- Moods -----
+# *** List Available Moods ***
 def get_moods():
 	return AVAILABLE_MOODS
 
 
+# *** Send WebSocket Command ***
 async def send_mood(command_type, mood):
-	payload = {"type": command_type, **mood}
+	payload = {"type": command_type, **mood} # JSON payload
 	try:
 		async with websockets.connect(uri) as websocket:
 			await websocket.send(json.dumps(payload)) # Converts the python dictionary payload into a JSON string
@@ -115,12 +135,12 @@ async def send_mood(command_type, mood):
 	except Exception as e:
 		print(f"An error occurred: {e}")
 
-
+# *** Set Mood (Wrapper) ***
 def set_mood(mood):
 	asyncio.run(send_mood("mood", {"mood": mood}))
 	return {"Status": "OK", "mood": mood}
 
+# *** Set the mouth state (Wrapper). state = "on", "off" ***
 def set_mouth(state):
-	# state = "on", "off"
 	asyncio.run(send_mood("audio", {"command": state}))
 	return {"Status": "OK", "state": state}

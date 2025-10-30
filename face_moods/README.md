@@ -72,14 +72,7 @@ OctopID is an expressive, animated face system built with **SVG** and **JavaScri
 
 ## Installation
 
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/your-username/OctopID.git
-cd OctopID
-```
-
-### 2. Install Python Dependencies
+### Dependencies
 
 ```bash
 pip install websockets==15.0.1 soundcard==0.4.5 numpy==1.21.5

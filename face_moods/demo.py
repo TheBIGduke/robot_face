@@ -1,20 +1,30 @@
+
+"""
+@description: A demonstration script that connects to the Websocket server (ws://localhost:8760)
+and sends a sequence of commands to showcase audio-reactivity and mood changes.
+"""
+
 import asyncio
 import websockets
 import json
 
+# ----- CONFIGURATION -----
 # A list of all available moods from your server files.
 AVAILABLE_MOODS = [
     'neutral', 'happy', 'sad', 'angry', 'surprised', 'love', 'dizzy',
     'doubtful', 'wink', 'scared', 'disappointed', 'innocent', 'worried'
 ]
 
+
+# ----- CLIENT FUNCTIONS -----
+# *** Send JSON Command ***
 async def send_command(websocket, command_type, params):
     """Sends a JSON command to the WebSocket server."""
-    # JSON payload
     payload = {"type": command_type, **params}
     await websocket.send(json.dumps(payload)) # Converts the python dictionary payload into a JSON string and sends it over the server
     print(f"Sent command: {payload}")
 
+# ----- Run Controller Demo -----
 async def octopid_controller_demo():
     """
     A demonstration script that connects to the OctopID server and
@@ -68,5 +78,7 @@ async def octopid_controller_demo():
     except Exception as e:
         print(f"An error occurred: {e}")
 
+
+# ----- DEMO EXECUTION -----
 if __name__ == "__main__":
     asyncio.run(octopid_controller_demo())

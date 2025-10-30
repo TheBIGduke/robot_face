@@ -2,26 +2,38 @@
 
 This repository contains the 3 micro-services to deploy the Octopy's robot face with mouth motion.
 
+## Summary
+
 The micro-services are:
 
-+ 1) face_moods
++ 1) face_server
+
+Backend to manage audio functionalities. Audios using Octybot voice.
+
++ 2) face_moods
 
 Websocket server to set robot face and to split audio frequencies to move robot mouth.
-cd ~/robot_face/face_moods
-python3 audioServer.py
 
-
-+ 2) face.html (open it with Chromium)
++ 3) face.html (open it with Chromium)
 
 Robot face (eyes and mouth).
 
 
-
-+ 3) face_server
-
-Backend to manage audio functionalities. Audios using Octybot voice.
-
 **Note:** For simplicity, 'deploy/robot_gesture.sh' runs all 3 sub-process in once.
+
+
+## Pre-requisites
+
+```bash
+sudo apt update
+sudo apt-get install chromium-browser
+cd robot_face
+pip install -r requirements.txt
+```
+
+If "DISPLAY" environment variable is not set in '~/.bashrc' file, add it with:
+
+`export DISPLAY=:0`
 
 
 ## Cloning this repo
@@ -31,19 +43,8 @@ cd ~
 git clone git@springlabsdevs.net:mecatronica/robotica/robot_face.git
 ```
 
-## Pre-requisites
+**Important:** To generate audios with Octybot voice, user MUST add the 'key.json' file at "~/robot_face/face_server/lib/data".
 
-```bash
-sudo apt-get install chromium-browser
-```
-
-
-## Robot gesture setup
-
-```
-cd ~/robot_face
-./robot_face_installer.sh
-```
 
 ## Start the functionality
 

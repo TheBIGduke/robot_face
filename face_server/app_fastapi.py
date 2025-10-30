@@ -1,5 +1,11 @@
 #!/usr/bin/python3
 
+"""
+@description: FastAPI backend server that provides API endpoints for audio management
+(CRUD, play, stop, pause, volume control) and mood settings. It also serves
+audio files from a static directory.
+"""
+
 import os
 from fastapi import FastAPI, APIRouter, Body
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,18 +14,18 @@ import lib.soundmood_control as smc
 import lib.t2s as t2s
 import uvicorn
 
-# --- Configuration ---
+# --- CONFIGURATION & APP INITIALIZATION ---
 static_dir = os.path.abspath('lib/audios') 
 vAPI = "/v1" # Used as the APIRouter prefix
 
 # --- Static Directory Setup ---
-try:
-    # Ensure the simplified directory exists before mounting
-    os.makedirs(static_dir, exist_ok=True)
-    print(f"Ensured directory exists: {static_dir}")
-except OSError as e:
-    print(f"Error creating directory {static_dir}: {e}")
-    raise
+# try:
+#     # Ensure the simplified directory exists before mounting
+#     os.makedirs(static_dir, exist_ok=True)
+#     # print(f"Ensured directory exists: {static_dir}")
+# except OSError as e:
+#     print(f"Error creating directory {static_dir}: {e}")
+#     raise
 
 # --- FastAPI Initialization ---
 app = FastAPI(
@@ -32,7 +38,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    #allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -45,56 +51,68 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 router = APIRouter(prefix=vAPI)
 
 
-# CRUD Audios
+# ----- AUDIO CRUD ENDPOINTS -----
+# *** Create/Post Audio ***
 @router.post('/audio')
 async def post_audio(data: dict = Body(..., description="JSON payload for audio creation/update.")):
     return smc.post_audio(data)
 
+# *** Delete Audio ***
 @router.delete('/audio')
 async def delete_audio(data: dict = Body(..., description="JSON payload for audio deletion.")):
     return smc.delete_audio(data)
 
+# *** Get/List Audios ***
 @router.get('/audio')
 def get_audios():
     return smc.get_audios()
 
 
-# Playing functions
+# ----- AUDIO PLAYBACK ENDPOINTS -----
+# *** Play Audio (by name) ***
 @router.get('/play/{audio_file}')
 def play(audio_file: str):
     return t2s.playAudio(audio_file)
 
+# *** Stop Audio Playback ***
 @router.get('/audio/stop')
 def stop():
     return t2s.stop()
 
+# *** Get system volume ***
 @router.get("/audio/volume")
 def get_volume():
     return smc.get_volume()
 
+# *** Set system volume ***
 @router.post("/audio/volume/{value}")
 async def set_volume(value):
     return smc.set_volume(value)
 
 
-# Moods functions
+# ----- MOOD CONTROL ENDPOINTS -----
+# *** Get Available Moods ***
 @router.get('/moods')
 def get_moods():
     return smc.get_moods()
 
+# *** Set Mood ***
 @router.post("/moods/{mood}")
 def set_mood(mood: str):
     return smc.set_mood(mood)
 
+# *** Set the current mouth state (on, off) for all system sounds
 @router.get("/moods/{state}")
 def set_mouth(state: str):
     return smc.set_mouth(state)
 
 
+# ----- REGISTER ROUTER -----
 # Add the router's routes to the main application
 app.include_router(router)
 
 
+# ----- SERVER STARTUP -----
 # --- Server Execution Blocks ---
 # For local development with Uvicorn (FastAPI's standard server)
 if __name__ == '__main__':
