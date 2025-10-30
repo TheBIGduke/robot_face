@@ -15,19 +15,20 @@ from collections import deque
 
 # ----- CONFIGURATION & GLOBALS -----
 # Central list of all valid moods, synchronized with the HTML file
+
 AVAILABLE_MOODS = (
     'neutral', 'happy', 'sad', 'angry', 'surprised', 'love', 'dizzy',
     'doubtful', 'wink', 'scared', 'disappointed', 'innocent', 'worried'
 )
 
 
-# --- WebSocket State ---
+# *** WebSocket State ***
 ACTIVE_CLIENTS = set()
 # Flag state variables
 is_audio_enabled = True
 
 
-# --- Audio Processing Settings ---
+# *** Audio Processing Settings ***
 sampleRate = 44100
 chunkSize = 1024
 bassRangeStart, bassRangeEnd = 60, 250
@@ -61,7 +62,7 @@ async def process_audio():
     global is_audio_enabled
     bass_history = deque(maxlen=5) ## Smooths bass values
     try:
-        # Captures the audio's output (loopback)
+        # ... Captures the audio's output (loopback) ...
         with sc.get_microphone(
             id=str(sc.default_speaker().name),
             include_loopback=True
@@ -71,7 +72,6 @@ async def process_audio():
                 if not is_audio_enabled or not ACTIVE_CLIENTS:
                     await asyncio.sleep(0.1)
                     continue
-                
                 # Chunk capture
                 data = mic.record(numframes=chunkSize)
                 if data.size == 0: continue
@@ -84,8 +84,8 @@ async def process_audio():
                 normalizedBass = min(bassEnergy / 30.0, 1.0)
                 bass_history.append(normalizedBass)
                 smoothed_bass = np.mean(bass_history)
-                
-                # Broadcast the audio data into a JSON payload
+        
+                # ... Broadcast the audio data into a JSON payload ...
                 payload = json.dumps({"type": "audio", "bass": smoothed_bass})
                 await broadcast(payload)
                 await asyncio.sleep(0.01)
@@ -111,13 +111,15 @@ async def client_handler(websocket):
                     data = json.loads(message)
                     command_type = data.get("type")
 
-                    if command_type == "mood": # Broadcast a new mood
+                    # ... Broadcast a new mood ...
+                    if command_type == "mood":
                         mood = data.get("mood")
                         if mood in AVAILABLE_MOODS:
                             print(f"<-- Received command: '{mood}'")
                             await send_mood(mood)
                     
-                    elif command_type == "audio": # Flips the global audio capture flag on or off
+                    # ... Flips on or off the audio capture ...
+                    elif command_type == "audio":
                         command = data.get("command")
                         if command == "on" and not is_audio_enabled:
                             is_audio_enabled = True

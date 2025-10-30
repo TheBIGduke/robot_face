@@ -14,7 +14,10 @@ import lib.soundmood_control as smc
 import lib.t2s as t2s
 import uvicorn
 
-# --- Configuration ---
+
+# ----- CONFIGURATION & APP INITIALIZATION -----
+
+# Point static directory
 static_dir = os.path.abspath('lib/audios') 
 vAPI = "/v1" # Used as the APIRouter prefix
 
@@ -71,20 +74,27 @@ def get_audios():
     return smc.get_audios()
 
 
-# Playing functions
+# ----- AUDIO PLAYBACK ENDPOINTS -----
+
+# *** Play Audio (by name) ***
 @router.get('/play/{audio_file}')
 def play(audio_file: str):
     return t2s.playAudio(audio_file)
 
+# *** Stop Audio Playback ***
 @router.get('/audio/stop')
 def stop():
     return t2s.stop()
 
-# *** Get Current Volume ***
+
+# ----- VOLUME CONTROL ENDPOINTS -----
+
+# *** Set Volume (by token/value) ***
 @router.get("/audio/volume")
 def get_volume():
     return smc.get_volume()
 
+# *** Set Volume (Relative/Add) ***
 @router.post("/audio/volume/{value}")
 async def set_volume(value):
     return smc.set_volume(value)
@@ -102,6 +112,7 @@ def get_moods():
 def set_mood(mood: str):
     return smc.set_mood(mood)
 
+# *** Get the current mouth state
 @router.get("/moods/{state}")
 def set_mouth(state: str):
     return smc.set_mouth(state)

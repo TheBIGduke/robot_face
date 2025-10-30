@@ -1,3 +1,4 @@
+
 """
 @description: Backend service that manages the phrases audio files (create, delete, list), controls system volume using amixer commands,
 and sends "mood" updates (like 'happy' or 'sad') to a WebSocket server, to sync with the face visualizer.
@@ -11,60 +12,52 @@ import subprocess
 import re
 import lib.t2s as t2s
 
+
 # Websocket server
 uri = "ws://localhost:8760"
 
-# A list of all available moods from your server files.
+# List of all available moods
 AVAILABLE_MOODS = [
     'neutral', 'happy', 'sad', 'angry', 'surprised', 'love', 'dizzy',
     'doubtful', 'wink', 'scared', 'disappointed', 'innocent', 'worried'
 ]
 
-# ----- Audio Management -----
-# (Creation, Deletion, Playback, Get/Set Volume)
-def post_audio(data):
 
-	# 1. Calls file creation function
+# ----- AUDIO MANAGEMENT -----
+# (Creation, Deletion, Playback)
+
+# *** Creation ***
+def post_audio(data):
+	# Calls file creation function
 	response = t2s.createAudio(data)
-	
-	# 2. Check for the test name, using the correct key "Name"
+	# Check for the test name, using the correct key "Name"
 	if data.get("Name") == "@Test@" and response:
 		return {"Status": "Test"}
-	
-	# 3. Return status for non-test audio based on file creation success
+	# Return status for non-test audio based on file creation success
 	if response:
 		return {"Status": True, "Description": "Audio file created/overwritten."}
 	else:
 		return {"Status": False, "Description": "Failed to create audio file. key.json missing?"}
 
-    # Calls file creation function
-    response = t2s.createAudio(data)
-    
-    # Check for the test name, using the correct key "Name"
-    if data.get("Name") == "@Test@":
-        return {"Status": "Test"}
-    
-    # Return status for non-test audio based on file creation success
-    if response:
-        return {"Status": True, "Description": "Audio file created/overwritten."}
-    else:
-        return {"Status": False, "Description": "Failed to create audio file."}
-
 # *** Deletion ***
 def delete_audio(data):
+    # Use the correct key "Name" to pass the audio name to the erase function
 	return t2s.eraseAudio(data["Name"])
 
 # *** List Audios ***
 def get_audios():
+    # Searches for the directory where they're stored
 	base_dir = os.path.dirname(os.path.abspath(__file__))
 	AUDIO_DIR = os.path.join(base_dir, "audios")
 
+    # If the directory does not exist, it's created
 	if not os.path.exists(AUDIO_DIR):
 		try:
 			os.makedirs(AUDIO_DIR)
 		except OSError:
 			return []
-		
+	
+     # Filters and lists all .mp3 files in the directory 
 	audio_files = []
 	for filename in os.listdir(AUDIO_DIR):
 		if filename.endswith(".mp3"):
@@ -73,11 +66,11 @@ def get_audios():
 	return audio_files
 
 
+# ----- VOLUME MANAGEMENT -----
+
+# *** Set Volume ***
 def set_volume(val):
-    """
-    Sets the absolute volume (e.g., '80') by passing the string directly to the amixer OS command.
-    """
-    # The string 'val' must contain the percentage
+    # The string 'val' must contain the percentage or the relative sign (+/-).
     os.system("amixer -D pulse sset Master " + val + "%")
     return {"Status": "Ok", "Volume": val}
 
@@ -127,7 +120,9 @@ def get_volume():
 def get_moods():
     return AVAILABLE_MOODS
 
+# *** Send WebSocket Command ***
 async def send_mood(command_type, mood):
+    # JSON payload
 	payload = {"type": command_type, **mood}
 	try:
 		async with websockets.connect(uri) as websocket:
@@ -137,11 +132,12 @@ async def send_mood(command_type, mood):
 	except Exception as e:
 		print(f"An error occurred: {e}")
 
-
+# *** Set Mood (Wrapper) ***
 def set_mood(mood):
 	asyncio.run(send_mood("mood", {"mood": mood}))
 	return {"Status": "OK", "mood": mood}
 
+# *** Set the mouth state (Wrapper) ***
 def set_mouth(state):
 	# state = "on", "off"
 	asyncio.run(send_mood("audio", {"command": state}))
