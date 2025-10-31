@@ -101,8 +101,7 @@ def get_volume():
             current_volume = match.group(1)
             
             # Format the actual volume into the required JSON string
-            data = { "Status": True, "Value": int(current_volume) }
-            return json.dumps(data)
+            return { "Status": True, "Value": int(current_volume) }
         else:
             # Handle case where volume percentage couldn't be parsed
             error_data = { "Status": False, "Value": -1 }

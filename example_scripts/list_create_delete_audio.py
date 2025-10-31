@@ -10,7 +10,7 @@ Audios of 'face_server' with octybot voice.
 import requests
 
 SERVER_IP = "localhost"
-SERVER_PORT = "9020"
+SERVER_PORT = "9021"
 url_base = f"http://{SERVER_IP}:{SERVER_PORT}/v1/audio"
 
 

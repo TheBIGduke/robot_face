@@ -9,7 +9,7 @@
 import requests
 
 SERVER_IP = "localhost"
-SERVER_PORT = "9020"
+SERVER_PORT = "9021"
 url_base = f"http://{SERVER_IP}:{SERVER_PORT}/v1/moods"
 
 
@@ -32,7 +32,7 @@ def list_moods():
 
 def set_mood():
     try:
-        response = requests.post(url_base+"/sad", json={}, params={}, timeout=2.0)
+        response = requests.post(url_base+"/love", json={}, params={}, timeout=2.0)
         response_body = response.json()
 
         # print(response_body)

@@ -117,7 +117,7 @@ app.include_router(router)
 # For local development with Uvicorn (FastAPI's standard server)
 if __name__ == '__main__':
     # The 'reload=True' flag enables hot-reloading for development
-    uvicorn.run("app_fastapi:app", host='0.0.0.0', port=9020, reload=True)
+    uvicorn.run("app_fastapi:app", host='0.0.0.0', port=9021, reload=True)
 
 
 # To use Production WSGI Server (Gunicorn)
