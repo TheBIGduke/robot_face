@@ -1,1 +1,4 @@
 key.json
+.vscode/
+__pycache__/
+*.pyc

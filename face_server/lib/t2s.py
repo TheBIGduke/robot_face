@@ -4,8 +4,6 @@ from websockets.sync.client import connect
 from google.cloud import texttospeech
 
 def createAudio(data):
-
-
     os.environ['GOOGLE_APPLICATION_CREDENTIALS']='lib/data/key.json'
     # Instantiates a client
     client = texttospeech.TextToSpeechClient()

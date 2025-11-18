@@ -14,7 +14,7 @@ import requests
 
 SERVER_IP = "localhost"
 SERVER_PORT = "9020"
-saved_audio = "@Test@"
+saved_audio = "Saludo"
 
 url_base = f"http://{SERVER_IP}:{SERVER_PORT}/v1/"
 
