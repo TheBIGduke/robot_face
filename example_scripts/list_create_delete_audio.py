@@ -1,19 +1,25 @@
 
 """
 @description: Simple script to list, create and delete an audio via API endpoint.
-Audios of 'robot_audios_backend' server with octybot voice.
+Audios of 'face_server' with octybot voice.
 
-@requirements: 'GestorGestos' (server), 'gestosv6.X' (octybot face with mouth) and 
-'robot_audios_backend' MUST be running.
+@requirements: 'app_fastapi.py' (server), 'face.html' (octybot face with mouth on chromium) and 
+'audioServer.py' MUST be running.
 """
 
 import requests
 
+
+# ----- SERVER CONFIGURATION -----
 SERVER_IP = "localhost"
 SERVER_PORT = "9020"
 url_base = f"http://{SERVER_IP}:{SERVER_PORT}/v1/audio"
 
 
+# ----- AUDIO MANAGEMENT (VIA API) -----
+# (List, Create, Delete)
+
+# *** List Audios ***
 def list_audios():
     try:
         response = requests.get(url_base, json={}, params={}, timeout=2.0)
@@ -33,7 +39,7 @@ def list_audios():
 
     return message
 
-
+# *** Create Audio ***
 def create_audio(data):
     try:
         response = requests.post(url_base, json=data, timeout=2)
@@ -46,7 +52,7 @@ def create_audio(data):
 
     return message
 
-
+# *** Delete Audio ***
 def delete_audio(data):
     try:
         response = requests.delete(url_base, json=data, timeout=2)
@@ -62,10 +68,10 @@ def delete_audio(data):
     return message
 
 
-# --- Usage example ----
+# ----- USAGE EXAMPLE -----
 if __name__ == "__main__":
 
-    # List of saved audios
+    # *** List of saved audios ***
     list_saved_audios = list_audios()
 
     print(f"No of audios: {len(list_saved_audios)}")
@@ -75,23 +81,20 @@ if __name__ == "__main__":
 
 
     # Create audio
+    ## IMPORTANT: To generate an audio file for testing, use '@Test@' as 'Name'
     data = { # dummy audio dict
-        "Name": "@Test@",
+        "Name": "prueba",
         "Text": "esto es una prueba de generación de audio"
     }
 
     message = create_audio(data)
     print("\nCreation message:", message)
 
-    ## IMPORTANT: To generate an audio file omitting its register in database, 
-    # use '@Test@' as 'Name'
-
 
     # Delete audio
     data1 = {
-        "Name": "mi_prueba" # name used to remove file
+        "Name": "prueba" # name used to remove file
     }
 
     # message1 = delete_audio(data1)
     # print("\nDelete message:", message1)
-

@@ -1,16 +1,14 @@
 
 """
-@description: Simple script to play/stop a saved audio via API endpoint, WITH mouth moving.
+@description: Simple script to test audio operations via API endpoint, WITH mouth moving.
 
-@important: It is assumed that user wants to play an audio that was previously saved
-and registered and the database of 'robot_audios_backend', WITH moving octybot mouth.
+@important: by default, robot mouth will move for any audio of the system.
 
-@requirements: 'GestorGestos' (server), 'gestosv6.X' (octybot face with mouth) and 
-'robot_audios_backend' MUST be running.
+@requirements: 'app_fastapi.py' (server), 'face.html' (octybot face with mouth on chromium) and 
+'audioServer.py' MUST be running.
 """
 
-from time import time
-import requests
+import time, requests
 
 SERVER_IP = "localhost"
 SERVER_PORT = "9020"
@@ -35,10 +33,39 @@ def play_audio(name):
 
 
 def stop_audio():
-    url = url_base + "audio/pausa"
+    url = url_base + "audio/stop"
     
     try:
         response = requests.get(url, timeout=2.0)
+        message = response.json()
+
+    except requests.exceptions.Timeout:
+        message = "The request timed out after 2 seconds."
+    except requests.exceptions.RequestException as ex:
+        message = f"{ex}"
+
+    return message
+
+
+def get_volume():
+    url = url_base + "audio/volume"
+    
+    try:
+        response = requests.get(url, timeout=2.0)
+        message = response.json()
+
+    except requests.exceptions.Timeout:
+        message = "The request timed out after 2 seconds."
+    except requests.exceptions.RequestException as ex:
+        message = f"{ex}"
+
+    return message
+
+def set_volume(val):
+    url = url_base + f"audio/volume/{val}"
+    
+    try:
+        response = requests.post(url, timeout=2.0)
         message = response.json()
 
     except requests.exceptions.Timeout:
@@ -55,12 +82,17 @@ if __name__ == "__main__":
     # Play audio
     response = play_audio(saved_audio)
     print(response)
-    
-    
+
     #Stop current audio
-    import time
     time.sleep(2.0)
-    print("After playing for 2 s, the audio is paused/stopped")
+    print("After playing for 2 s, the audio is stopped")
     stop_response = stop_audio()
+    print(stop_response)
+
+    get_volume_response = get_volume()
+    print("Current system volume:", get_volume_response)
+
+    set_volume_response = set_volume(50) # volume 0-100
+    print("Set system volume:", set_volume_response)
 
     print("script finished")

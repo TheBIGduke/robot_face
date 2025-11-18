@@ -1,11 +1,9 @@
 
 """
-ACTUALIZAR----
-@description: Simple script to list, create and delete an audio via API endpoint.
-Audios of 'robot_audios_backend' server with octybot voice.
+@description: Simple script to list and to set mood of robot face via API endpoint.
 
-@requirements: 'GestorGestos' (server), 'gestosv6.X' (octybot face with mouth) and 
-'robot_audios_backend' MUST be running.
+@requirements: 'app_fastapi.py' (server), 'face.html' (octybot face with mouth on chromium) and 
+'audioServer.py' MUST be running.
 """
 
 import requests

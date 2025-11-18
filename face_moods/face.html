@@ -92,6 +92,14 @@
 
         let targetMouthPath = '';
         let currentMouthPath = '';
+        
+        // --- UPDATED TALKING MOUTH PATHS (Sweep Flag 0) ---
+        let isTalking = false; // Tracks if the mouth is currently in an audio-driven state
+        let talkingTimeout = null; // Timer to switch back to the mood path after audio ends
+        // Set sweep flag (7th number) to 0 for a downward curve
+        // Set Y-radius to 0.1 (from 0) to maintain arc structure for interpolation
+        const TALKING_MOUTH_CLOSED_PATH = 'M 60 130 A 40 0.1 0 0 0 140 130 Z'; 
+        // -----------------------------------------------------
 
         /* ====================================================================
            EYE ANIMATION - PANNING
@@ -202,7 +210,7 @@
             },
 
             scared: {
-                color: '#A8E6CF',
+                color: '#A8ECF0', // Changed color for visibility
                 mouthPath: 'M 80 145 L 95 135 L 110 145 L 125 135 L 140 145',
                 leftEyePath: 'M 5,115 L 5,75 A 15,35 0 0,1 35,75 L 35,115 Z',
                 rightEyePath: 'M 165,115 L 165,75 A 15,35 0 0,1 195,75 L 195,115 Z',
@@ -234,6 +242,13 @@
            CORE FUNCTION - setMood()
            ==================================================================== */
         function setMood(name) {
+            // Cancel any pending audio-end timeout if a mood command is received
+            if (talkingTimeout) {
+                clearTimeout(talkingTimeout);
+                talkingTimeout = null;
+            }
+            isTalking = false; // Force out of talking state
+
             currentPanX = 0;
             currentPanY = 0;
             eyes.forEach(eye => {
@@ -250,7 +265,16 @@
             root.style.setProperty('--face-color', expr.color);
 
             mouth.setAttribute('stroke', 'var(--face-color)');
-            mouth.setAttribute('d', expr.mouthPath);
+            mouth.setAttribute('d', expr.mouthPath); // Immediately set mood mouth path
+            
+            // Set fill to transparent when setting a new mood
+            // (unless the mood itself is supposed to be filled, e.g. surprised)
+            if (name === 'surprised') {
+                 mouth.style.fill = 'var(--face-color)';
+            } else {
+                 mouth.style.fill = 'transparent';
+            }
+
 
             leftEye.setAttribute('fill', 'var(--face-color)');
             leftEye.setAttribute('d', expr.leftEyePath);
@@ -293,13 +317,42 @@
                         const talkingThreshold = 0.1;
 
                         if (bassLevel > talkingThreshold) {
+                            // --- Audio is active ---
+                            // Clear any pending timeout to switch back to mood path
+                            if (talkingTimeout) {
+                                clearTimeout(talkingTimeout);
+                                talkingTimeout = null;
+                            }
+                            isTalking = true;
+
                             // Calculates mouth openness based on bass level
                             const mouthOpenness = bassLevel * 40;
+                            // Set the target path to an open arc based on audio (sweep flag 0 for downward curve)
                             targetMouthPath = `M 60 130 A 40 ${mouthOpenness} 0 0 0 140 130 Z`;
                             mouth.style.fill = 'var(--face-color)';
                         } else {
-                            targetMouthPath = moods[currentMood].mouthPath;
-                            mouth.style.fill = 'transparent';
+                            // --- Audio dropped below threshold ---
+                            if (isTalking) {
+                                // If we were just talking, set target to closed arc for smooth interpolation
+                                targetMouthPath = TALKING_MOUTH_CLOSED_PATH;
+                                
+                                // Set a timeout to switch back to the original mood path after a small delay
+                                if (!talkingTimeout) {
+                                    // *** MODIFICATION: Increased timeout ***
+                                    talkingTimeout = setTimeout(() => {
+                                        isTalking = false; // We are no longer governed by audio
+                                        targetMouthPath = moods[currentMood].mouthPath;
+                                        // Set fill to transparent AFTER animation
+                                        if (currentMood !== 'surprised') { // Don't hide surprised mouth
+                                            mouth.style.fill = 'transparent';
+                                        }
+                                        talkingTimeout = null;
+                                    }, 300); // 300ms delay to allow the slower animation to finish
+                                }
+                            } else {
+                                // Not talking and not transitioning, maintain mood path
+                                targetMouthPath = moods[currentMood].mouthPath;
+                            }
                         }
                     } else if (data.type === 'mood') { // Checks if the data is a mood command
                         console.log(`Received mood command: ${data.mood}`);
@@ -312,6 +365,11 @@
             // If the connection drops, it will try to reconnect
             webSocket.onclose = () => {
                 console.log('Disconnected from the WebSocket server');
+                // Clear state on disconnect
+                if (talkingTimeout) clearTimeout(talkingTimeout);
+                isTalking = false;
+                talkingTimeout = null;
+
                 setTimeout(connectWebSocket, 3000);
             };
 
@@ -337,14 +395,31 @@
                 newPath = targetMouthPath;
             } else {
                 const newPoints = currentPoints.map((point, i) =>
-                    point + (targetPoints[i] - point) * 0.3
+                    // *** MODIFICATION: Slower interpolation ***
+                    point + (targetPoints[i] - point) * 0.15
                 );
 
-                if (newPoints.length === 4) {
+                // --- Robust path reconstruction based on point count ---
+                if (newPoints.length === 4) { // M L (Neutral, Angry, Doubtful)
                     newPath = `M ${newPoints[0]} ${newPoints[1]} L ${newPoints[2]} ${newPoints[3]}`;
-                } else if (newPoints.length === 9) {
+                
+                } else if (newPoints.length === 6) { // M Q (Happy, Sad, Love, Wink, Innocent)
+                    newPath = `M ${newPoints[0]} ${newPoints[1]} Q ${newPoints[2]} ${newPoints[3]} ${newPoints[4]} ${newPoints[5]}`;
+                
+                } else if (newPoints.length === 8) { // M Q T (Dizzy, Disappointed)
+                     newPath = `M ${newPoints[0]} ${newPoints[1]} Q ${newPoints[2]} ${newPoints[3]}, ${newPoints[4]} ${newPoints[5]} T ${newPoints[6]} ${newPoints[7]}`;
+                
+                } else if (newPoints.length === 9) { // M A Z (Talking Arc)
                     newPath = `M ${newPoints[0]} ${newPoints[1]} A ${newPoints[2]} ${newPoints[3]} ${newPoints[4]} ${newPoints[5]} ${newPoints[6]} ${newPoints[7]} ${newPoints[8]} Z`;
+                
+                } else if (newPoints.length === 10) { // M L L L L (Scared)
+                     newPath = `M ${newPoints[0]} ${newPoints[1]} L ${newPoints[2]} ${newPoints[3]} L ${newPoints[4]} ${newPoints[5]} L ${newPoints[6]} ${newPoints[7]} L ${newPoints[8]} ${newPoints[9]}`;
+
+                } else if (newPoints.length === 21) { // M A A Z (Surprised)
+                    newPath = `M ${newPoints[0]} ${newPoints[1]} A ${newPoints[2]} ${newPoints[3]} ${newPoints[4]} ${newPoints[5]} ${newPoints[6]} ${newPoints[7]} ${newPoints[8]} A ${newPoints[9]} ${newPoints[10]} ${newPoints[11]} ${newPoints[12]} ${newPoints[13]} ${newPoints[14]} ${newPoints[15]} Z`;
+                
                 } else {
+                    // Fallback: just snap to target
                     newPath = targetMouthPath;
                 }
             }
