@@ -11,7 +11,7 @@
 import time, requests
 
 SERVER_IP = "localhost"
-SERVER_PORT = "9020"
+SERVER_PORT = "9021"
 saved_audio = "Saludo"
 
 url_base = f"http://{SERVER_IP}:{SERVER_PORT}/v1/"

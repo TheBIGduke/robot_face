@@ -1,7 +1,7 @@
-
 """
-@description: Backend service that manages the phrases audio files (create, delete, list), controls system volume using amixer commands,
-and sends "mood" updates (like 'happy' or 'sad') to a WebSocket server, to sync with the face visualizer.
+@description: Backend service that manages the phrases audio files (create, delete, list), 
+controls system volume using amixer commands, and sends "mood" updates (like 'happy' or 'sad') 
+to a WebSocket server, to sync with the face visualizer.
 """
 
 import json
@@ -12,28 +12,30 @@ import subprocess
 import re
 import lib.t2s as t2s
 
-
 # Websocket server
 uri = "ws://localhost:8760"
 
-# List of all available moods
+# A list of all available moods from your server files.
 AVAILABLE_MOODS = [
     'neutral', 'happy', 'sad', 'angry', 'surprised', 'love', 'dizzy',
     'doubtful', 'wink', 'scared', 'disappointed', 'innocent', 'worried'
 ]
 
 
-# ----- AUDIO MANAGEMENT -----
-# (Creation, Deletion, Playback)
+# ----- Audio Management -----
+# (Creation, Deletion, Playback, Get/Set Volume)
 
 # *** Creation ***
 def post_audio(data):
-	# Calls file creation function
+
+	# 1. Calls file creation function
 	response = t2s.createAudio(data)
-	# Check for the test name, using the correct key "Name"
+	
+	# 2. Check for the test name, using the correct key "Name"
 	if data.get("Name") == "@Test@" and response:
 		return {"Status": "Test"}
-	# Return status for non-test audio based on file creation success
+	
+	# 3. Return status for non-test audio based on file creation success
 	if response:
 		return {"Status": True, "Description": "Audio file created/overwritten."}
 	else:
@@ -41,12 +43,12 @@ def post_audio(data):
 
 # *** Deletion ***
 def delete_audio(data):
-    # Use the correct key "Name" to pass the audio name to the erase function
+	# Use the correct key "Name" to pass the audio name to the erase function
 	return t2s.eraseAudio(data["Name"])
 
 # *** List Audios ***
 def get_audios():
-    # Searches for the directory where they're stored
+	# Searches for the directory where they're stored
 	base_dir = os.path.dirname(os.path.abspath(__file__))
 	AUDIO_DIR = os.path.join(base_dir, "audios")
 
@@ -57,7 +59,7 @@ def get_audios():
 		except OSError:
 			return []
 	
-     # Filters and lists all .mp3 files in the directory 
+    # Filters and lists all .mp3 files in the directory 
 	audio_files = []
 	for filename in os.listdir(AUDIO_DIR):
 		if filename.endswith(".mp3"):
@@ -67,10 +69,12 @@ def get_audios():
 
 
 # ----- VOLUME MANAGEMENT -----
-
 # *** Set Volume ***
 def set_volume(val):
-    # The string 'val' must contain the percentage or the relative sign (+/-).
+    """
+    Sets the absolute volume in percentage by passing the string directly to the amixer OS command.
+    """
+    # The string 'val' must contain the percentage
     os.system("amixer -D pulse sset Master " + val + "%")
     return {"Status": "Ok", "Volume": val}
 
@@ -97,8 +101,7 @@ def get_volume():
             current_volume = match.group(1)
             
             # Format the actual volume into the required JSON string
-            data = { "Status": True, "Value": int(current_volume) }
-            return json.dumps(data)
+            return { "Status": True, "Value": int(current_volume) }
         else:
             # Handle case where volume percentage couldn't be parsed
             error_data = { "Status": False, "Value": -1 }
@@ -114,16 +117,15 @@ def get_volume():
         return json.dumps(error_data)
 
 
-# ----- MOODS -----
-
+# ----- Moods -----
 # *** List Available Moods ***
 def get_moods():
-    return AVAILABLE_MOODS
+	return AVAILABLE_MOODS
+
 
 # *** Send WebSocket Command ***
 async def send_mood(command_type, mood):
-    # JSON payload
-	payload = {"type": command_type, **mood}
+	payload = {"type": command_type, **mood} # JSON payload
 	try:
 		async with websockets.connect(uri) as websocket:
 			await websocket.send(json.dumps(payload)) # Converts the python dictionary payload into a JSON string
@@ -137,8 +139,7 @@ def set_mood(mood):
 	asyncio.run(send_mood("mood", {"mood": mood}))
 	return {"Status": "OK", "mood": mood}
 
-# *** Set the mouth state (Wrapper) ***
+# *** Set the mouth state (Wrapper). state = "on", "off" ***
 def set_mouth(state):
-	# state = "on", "off"
 	asyncio.run(send_mood("audio", {"command": state}))
 	return {"Status": "OK", "state": state}

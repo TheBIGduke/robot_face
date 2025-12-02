@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-gunicorn[standard]
+#gunicorn[standard]
 python-dateutil
 google-api-core
 google-api-python-client
@@ -9,6 +9,6 @@ google-auth-httplib2
 google-auth-oauthlib
 google-cloud-texttospeech
 googleapis-common-protos
-websockets==15.0.1
+websockets==15.0.1   #pip install --upgrade websockets
 soundcard==0.4.5
 numpy==1.21.5
