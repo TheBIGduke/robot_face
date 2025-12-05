@@ -1,6 +1,6 @@
 
 """
-@description: Simple script to list, create and delete an audio via API endpoint.
+@description: Simple script to list, create and delete an audio file via API endpoint.
 Audios of 'face_server' with octybot voice.
 
 @requirements: 'app_fastapi.py' (server), 'face.html' (octybot face with mouth on chromium) and 
@@ -15,9 +15,6 @@ SERVER_IP = "localhost"
 SERVER_PORT = "9021"
 url_base = f"http://{SERVER_IP}:{SERVER_PORT}/v1/audio"
 
-
-# ----- AUDIO MANAGEMENT (VIA API) -----
-# (List, Create, Delete)
 
 # *** List Audios ***
 def list_audios():
@@ -43,7 +40,6 @@ def list_audios():
 def create_audio(data):
     try:
         response = requests.post(url_base, json=data, timeout=2)
-        # status_code = response.status_code
         message = response.text
     except requests.exceptions.Timeout:
         message = "The request timed out after 3 seconds."
@@ -56,8 +52,6 @@ def create_audio(data):
 def delete_audio(data):
     try:
         response = requests.delete(url_base, json=data, timeout=2)
-
-        # status_code = response.status_code
         message = response.text
 
     except requests.exceptions.Timeout:
@@ -82,7 +76,9 @@ if __name__ == "__main__":
 
     # Create audio
     ## IMPORTANT: To generate an audio file for testing, use '@Test@' as 'Name'
+    ## Audio file name will be: "Mood_Name.mp3"
     data = { # dummy audio dict
+        "Mood": "Feliz",
         "Name": "prueba",
         "Text": "esto es una prueba de generación de audio"
     }
@@ -93,7 +89,7 @@ if __name__ == "__main__":
 
     # Delete audio
     data1 = {
-        "Name": "prueba" # name used to remove file
+        "Name": "Triste_prueba" # full name used to remove file (with mood prefix)
     }
 
     # message1 = delete_audio(data1)

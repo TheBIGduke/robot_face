@@ -22,37 +22,40 @@ def createAudio(data):
     else:
         print("\n--- Error: text to speech Google key file DOES NOT exist ---\n")
         return False
-    
-    client = texttospeech.TextToSpeechClient() # Instantiates a client
+    try:
+        client = texttospeech.TextToSpeechClient() # Instantiates a client
 
-    # *** TTS Parameters ***
-    name="es-US-Wavenet-B" #Voz es-US-Wavenet-C (A, B o C), es-US-Standard-A (A,B o C)
-    language_code="es-US"
+        # *** TTS Parameters ***
+        name="es-US-Wavenet-B" #Voz es-US-Wavenet-C (A, B o C), es-US-Standard-A (A,B o C)
+        language_code="es-US"
 
-    audio_encoding=texttospeech.AudioEncoding.MP3
-    speaking_rate = 0.9
-    pitch = 8
+        audio_encoding=texttospeech.AudioEncoding.MP3
+        speaking_rate = 0.9
+        pitch = 8
 
-    # *** Sintezise Speech Request ***
-    synthesis_input = texttospeech.SynthesisInput(text=data["Text"])
+        # *** Sintezise Speech Request ***
+        synthesis_input = texttospeech.SynthesisInput(text=data["Text"])
 
-    # Build the voice request
-    voice = texttospeech.VoiceSelectionParams(
-        name=name, language_code=language_code
-    )
+        # Build the voice request
+        voice = texttospeech.VoiceSelectionParams(
+            name=name, language_code=language_code
+        )
 
-    # Select the type of audio file you want returned
-    audio_config = texttospeech.AudioConfig(
-        audio_encoding=audio_encoding, speaking_rate = speaking_rate, pitch = pitch
-    )
+        # Select the type of audio file you want returned
+        audio_config = texttospeech.AudioConfig(
+            audio_encoding=audio_encoding, speaking_rate = speaking_rate, pitch = pitch
+        )
 
-    # Perform the text-to-speech request
-    response = client.synthesize_speech(
-        input=synthesis_input, voice=voice, audio_config=audio_config
-    )
+        # Perform the text-to-speech request
+        response = client.synthesize_speech(
+            input=synthesis_input, voice=voice, audio_config=audio_config
+        )
+    except:
+        print("********* ERROR: Invalid Google Key for text-to-speech")
+        return False
 
     # Save to the static directory
-    with open(audios_dir + data["Name"] + ".mp3", "wb") as out: 
+    with open(audios_dir + data["Mood"] + "_" + data["Name"] + ".mp3", "wb") as out: 
         out.write(response.audio_content) # Write the response to the output file.
 
     return True

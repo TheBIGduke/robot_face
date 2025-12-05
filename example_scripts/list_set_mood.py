@@ -32,10 +32,8 @@ def list_moods():
 
 def set_mood():
     try:
-        response = requests.post(url_base+"/sad", json={}, params={}, timeout=2.0)
+        response = requests.post(url_base+"/Asustado", json={}, params={}, timeout=2.0)
         response_body = response.json()
-
-        # print(response_body)
 
         message = response_body
 

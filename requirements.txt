@@ -1,6 +1,5 @@
 fastapi
 uvicorn
-#gunicorn[standard]
 python-dateutil
 google-api-core
 google-api-python-client
