@@ -18,14 +18,6 @@ import uvicorn
 static_dir = os.path.abspath('lib/audios') 
 vAPI = "/v1" # Used as the APIRouter prefix
 
-# --- Static Directory Setup ---
-# try:
-#     # Ensure the simplified directory exists before mounting
-#     os.makedirs(static_dir, exist_ok=True)
-#     # print(f"Ensured directory exists: {static_dir}")
-# except OSError as e:
-#     print(f"Error creating directory {static_dir}: {e}")
-#     raise
 
 # --- FastAPI Initialization ---
 app = FastAPI(
@@ -55,11 +47,21 @@ router = APIRouter(prefix=vAPI)
 # *** Create/Post Audio ***
 @router.post('/audio')
 async def post_audio(data: dict = Body(..., description="JSON payload for audio creation/update.")):
+    """
+    Create an audio file.
+
+    body = { "Mood": "Neutral", "Name": "prueba", "Text": "esta es una prueba"}
+    """
     return smc.post_audio(data)
 
 # *** Delete Audio ***
 @router.delete('/audio')
 async def delete_audio(data: dict = Body(..., description="JSON payload for audio deletion.")):
+    """
+    Delete an audio file.
+
+    body = {"Name": "Feliz_prueba"}
+    """
     return smc.delete_audio(data)
 
 # *** Get/List Audios ***
@@ -72,6 +74,9 @@ def get_audios():
 # *** Play Audio (by name) ***
 @router.get('/play/{audio_file}')
 def play(audio_file: str):
+    mood = audio_file.split('_')[0]
+    if not mood == "":
+        smc.set_mood(mood)
     return t2s.playAudio(audio_file)
 
 # *** Stop Audio Playback ***
@@ -82,11 +87,17 @@ def stop():
 # *** Get system volume ***
 @router.get("/audio/volume")
 def get_volume():
+    """
+    Get system volume, [0,100]
+    """
     return smc.get_volume()
 
 # *** Set system volume ***
 @router.post("/audio/volume/{value}")
 async def set_volume(value):
+    """
+    Set system volume, value=[0,100]
+    """
     return smc.set_volume(value)
 
 
@@ -104,6 +115,9 @@ def set_mood(mood: str):
 # *** Set the current mouth state (on, off) for all system sounds
 @router.get("/moods/{state}")
 def set_mouth(state: str):
+    """
+    Activate/deactivate mouth motion, state=(on,off)
+    """
     return smc.set_mouth(state)
 
 
@@ -119,11 +133,3 @@ if __name__ == '__main__':
     # The 'reload=True' flag enables hot-reloading for development
     uvicorn.run("app_fastapi:app", host='0.0.0.0', port=9021, reload=True)
 
-
-# To use Production WSGI Server (Gunicorn)
-# The Gunicorn command changes to use the Uvicorn worker class for asynchronous performance:
-# $ gunicorn -w 4 -b 0.0.0.0:9020 -k uvicorn.workers.UvicornWorker 'app_fastapi:app'
-
-# -w 4 Sets the number of worker processes (workers).
-# -k uvicorn.workers.UvicornWorker Tells Gunicorn to use the high-performance async worker.
-# 'app_fastapi:app' references the file name and the FastAPI application object.

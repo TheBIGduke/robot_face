@@ -14,9 +14,10 @@ from collections import deque
 
 # ----- CONFIGURATION & GLOBALS -----
 # Central list of all valid moods, synchronized with the HTML file
+# IMPORTANT: AVAILABLE_MOODS ARE DEFINED IN "face_server/lib/soundmood_control.py" and "face.html" AS WELL
 AVAILABLE_MOODS = (
-    'neutral', 'happy', 'sad', 'angry', 'surprised', 'love', 'dizzy',
-    'doubtful', 'wink', 'scared', 'disappointed', 'innocent', 'worried'
+    'Neutral', 'Feliz', 'Triste', 'Enojado', 'Sorprendido', 'Asustado', 'Mareado',
+    'Preocupado', 'Dudoso', 'Inocente', 'Guiñando', 'Enamorado', 'Decepcionado'
 )
 
 # --- Use a set to track all active clients ---
@@ -112,6 +113,7 @@ async def client_handler(websocket):
 
                     if command_type == "mood": # Broadcast a new mood
                         mood = data.get("mood")
+                        print(f"Commanded mood: {mood}")
                         if mood in AVAILABLE_MOODS:
                             print(f"<-- Received command: '{mood}'")
                             await send_mood(mood)

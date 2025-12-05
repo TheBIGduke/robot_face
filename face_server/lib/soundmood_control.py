@@ -1,6 +1,6 @@
 """
 @description: Backend service that manages the phrases audio files (create, delete, list), 
-controls system volume using amixer commands, and sends "mood" updates (like 'happy' or 'sad') 
+controls system volume using amixer commands, and sends "mood" updates (like 'Feliz' or 'Triste') 
 to a WebSocket server, to sync with the face visualizer.
 """
 
@@ -16,10 +16,11 @@ import lib.t2s as t2s
 uri = "ws://localhost:8760"
 
 # A list of all available moods from your server files.
-AVAILABLE_MOODS = [
-    'neutral', 'happy', 'sad', 'angry', 'surprised', 'love', 'dizzy',
-    'doubtful', 'wink', 'scared', 'disappointed', 'innocent', 'worried'
-]
+# IMPORTANT: AVAILABLE_MOODS ARE DEFINED IN "face_moods/audioServer.py" and "face.html" AS WELL
+AVAILABLE_MOODS = (
+    'Neutral', 'Feliz', 'Triste', 'Enojado', 'Sorprendido', 'Asustado', 'Mareado',
+    'Preocupado', 'Dudoso', 'Inocente', 'Guiñando', 'Enamorado', 'Decepcionado'
+)
 
 
 # ----- Audio Management -----
@@ -39,7 +40,7 @@ def post_audio(data):
 	if response:
 		return {"Status": True, "Description": "Audio file created/overwritten."}
 	else:
-		return {"Status": False, "Description": "Failed to create audio file. key.json missing?"}
+		return {"Status": False, "Description": "Failed to create audio file. key.json missing or invalid?"}
 
 # *** Deletion ***
 def delete_audio(data):
@@ -62,6 +63,10 @@ def get_audios():
     # Filters and lists all .mp3 files in the directory 
 	audio_files = []
 	for filename in os.listdir(AUDIO_DIR):
+		if filename.find("@Test@") > -1:
+			os.remove(AUDIO_DIR+"/"+filename)
+			print(f"{filename} removed since it is a test audio")
+			continue
 		if filename.endswith(".mp3"):
 			name = filename[:-4]
 			audio_files.append({"Name": name})

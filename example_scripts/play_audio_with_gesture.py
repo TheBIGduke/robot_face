@@ -12,13 +12,13 @@ import time, requests
 
 SERVER_IP = "localhost"
 SERVER_PORT = "9021"
-saved_audio = "Saludo"
+saved_audio = "Feliz_prueba"
 
 url_base = f"http://{SERVER_IP}:{SERVER_PORT}/v1/"
 
 
 def play_audio(name):
-    url = url_base + "play/"+name
+    url = url_base + "play/"+name # Full name (mood_name)
     
     try:
         response = requests.get(url, timeout=2.0)
